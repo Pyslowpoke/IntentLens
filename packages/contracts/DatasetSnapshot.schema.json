@@ -1,0 +1,129 @@
+{
+  "$defs": {
+    "DatasetField": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "dtype": {
+          "enum": [
+            "string",
+            "number",
+            "date",
+            "boolean"
+          ],
+          "title": "Dtype",
+          "type": "string"
+        },
+        "meaning": {
+          "default": "",
+          "title": "Meaning",
+          "type": "string"
+        },
+        "nulls": {
+          "default": 0,
+          "title": "Nulls",
+          "type": "integer"
+        },
+        "unique": {
+          "default": 0,
+          "title": "Unique",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "dtype"
+      ],
+      "title": "DatasetField",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "source": {
+      "title": "Source",
+      "type": "string"
+    },
+    "fields": {
+      "items": {
+        "$ref": "#/$defs/DatasetField"
+      },
+      "title": "Fields",
+      "type": "array"
+    },
+    "rows": {
+      "title": "Rows",
+      "type": "integer"
+    },
+    "checksum": {
+      "title": "Checksum",
+      "type": "string"
+    },
+    "snapshot": {
+      "title": "Snapshot",
+      "type": "string"
+    },
+    "raw": {
+      "title": "Raw",
+      "type": "string"
+    },
+    "warnings": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    },
+    "transforms": {
+      "default": [],
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Transforms",
+      "type": "array"
+    },
+    "profile": {
+      "additionalProperties": true,
+      "default": {},
+      "title": "Profile",
+      "type": "object"
+    }
+  },
+  "required": [
+    "id",
+    "source",
+    "fields",
+    "rows",
+    "checksum",
+    "snapshot",
+    "raw"
+  ],
+  "title": "DatasetSnapshot",
+  "type": "object"
+}

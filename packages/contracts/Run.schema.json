@@ -1,0 +1,103 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "project_id": {
+      "title": "Project Id",
+      "type": "string"
+    },
+    "chart_id": {
+      "title": "Chart Id",
+      "type": "string"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "generation": {
+      "title": "Generation",
+      "type": "integer"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "status": {
+      "default": "queued",
+      "enum": [
+        "queued",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
+        "stale"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "stage": {
+      "default": "queued",
+      "title": "Stage",
+      "type": "string"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error"
+    },
+    "event_seq": {
+      "default": 0,
+      "title": "Event Seq",
+      "type": "integer"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    },
+    "updated_at": {
+      "title": "Updated At",
+      "type": "string"
+    },
+    "artifacts": {
+      "additionalProperties": true,
+      "default": {},
+      "title": "Artifacts",
+      "type": "object"
+    }
+  },
+  "required": [
+    "id",
+    "project_id",
+    "chart_id",
+    "dataset_id",
+    "generation",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "Run",
+  "type": "object"
+}

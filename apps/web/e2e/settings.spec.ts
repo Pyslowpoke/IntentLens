@@ -1,0 +1,37 @@
+import { test, expect } from "@playwright/test";
+
+test("settings persist, localize UI and apply the preferred tool to new runs", async ({ page }) => {
+  await page.route("**/api/model/status", route => route.fulfill({json:{provider:"rule",model:"",ready:false}}));
+  await page.goto("/");
+  await page.getByRole("button", {name:"设置",exact:true}).click();
+  await page.getByLabel("Interface language",{exact:true}).selectOption("en");
+  await page.getByLabel("Nickname",{exact:true}).fill("Alex");
+  await page.locator('input[value="altair"]').check();
+  await page.getByLabel("Default chart theme",{exact:true}).selectOption("dark");
+  await page.getByRole("button",{name:"Save settings",exact:true}).click();
+  await expect(page.getByText("Welcome back, Alex",{exact:true})).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang","en");
+  await page.reload();
+  await expect(page.getByRole("heading",{name:"A clear question. A clearer view."})).toBeVisible();
+  await page.getByRole("button",{name:"Settings",exact:true}).click();
+  await expect(page.getByLabel("Nickname",{exact:true})).toHaveValue("Alex");
+  await expect(page.locator('input[value="altair"]')).toBeChecked();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await page.getByRole("button",{name:"New analysis",exact:true}).click();
+  await page.getByRole("button",{name:"Sales",exact:true}).click();
+  await page.getByRole("button",{name:"Generate plans",exact:true}).click();
+  await expect(page.locator(".proposal")).toHaveCount(3);
+  const request = page.waitForRequest(r => r.url().endsWith("/runs") && r.method()==="POST");
+  await page.locator(".proposal").nth(1).click();
+  const body=(await request).postDataJSON();
+  expect(body.spec.engine).toBe("altair");
+  expect(body.spec.theme).toBe("dark");
+  await expect(page.locator(".chart-preview iframe")).toBeVisible({timeout:120000});
+  await expect(page.frameLocator(".chart-preview iframe").locator("canvas, svg.marks").first()).toBeVisible();
+  await page.getByRole("button",{name:"Settings",exact:true}).click();
+  await page.getByLabel("Interface language",{exact:true}).selectOption("zh");
+  await page.getByRole("button",{name:"保存设置",exact:true}).click();
+  await expect(page.locator("html")).toHaveAttribute("lang","zh-CN");
+  await expect(page.getByRole("heading",{name:"先理解问题，再看见答案。"})).toBeVisible();
+});

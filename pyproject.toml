@@ -1,0 +1,42 @@
+[project]
+name = "ai-visualization-workbench"
+version = "0.1.0"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic>=2",
+    "python-multipart",
+    "pandas",
+    "openpyxl",
+    "duckdb",
+    "pyarrow",
+    "sqlalchemy",
+    "psycopg[binary]",
+    "pymysql",
+    "plotly",
+    "kaleido",
+    "matplotlib",
+    "seaborn",
+    "altair",
+    "vl-convert-python",
+    "pyecharts",
+    "datashader",
+    "geopandas",
+    "pydeck",
+    "plottable",
+    "httpx",
+    "pillow",
+    "psutil",
+    "sqlglot",
+    "playwright",
+    "python-dotenv>=1.2.3",
+]
+
+[dependency-groups]
+dev = ["pytest", "pytest-cov", "pip-licenses"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+markers = ["database: requires real PostgreSQL and MySQL services"]

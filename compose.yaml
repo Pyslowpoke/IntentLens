@@ -1,0 +1,53 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: infra/api.Dockerfile
+    ports: ["127.0.0.1:8000:8000"]
+    volumes: ["workbench:/data"]
+    environment:
+      WORKBENCH_DATA: /data
+      PROVIDER: ${PROVIDER:-rule}
+      MODEL: ${MODEL:-}
+      MODEL_BASE_URL: ${MODEL_BASE_URL:-}
+      MODEL_API_KEY: ${MODEL_API_KEY:-}
+      DB_SOURCES_JSON: ${DB_SOURCES_JSON:-{}}
+      SQLITE_FILES_JSON: ${SQLITE_FILES_JSON:-{}}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+  worker:
+    build:
+      context: .
+      dockerfile: infra/worker.Dockerfile
+    volumes: ["workbench:/data"]
+    environment:
+      WORKBENCH_DATA: /data
+      RUN_TIMEOUT: 120
+      MPLCONFIGDIR: /tmp/mpl
+      HOME: /tmp
+    network_mode: none
+    mem_limit: 3g
+    cpus: 2
+    pids_limit: 256
+    read_only: true
+    tmpfs: ["/tmp:size=1g"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    depends_on:
+      api: {condition: service_healthy}
+  web:
+    build:
+      context: .
+      dockerfile: infra/web.Dockerfile
+    ports: ["127.0.0.1:3000:3000"]
+    environment:
+      API_URL: http://api:8000
+    depends_on:
+      api: {condition: service_healthy}
+volumes:
+  workbench:

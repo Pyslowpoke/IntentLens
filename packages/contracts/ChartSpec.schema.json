@@ -1,0 +1,123 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "kind": {
+      "default": "bar",
+      "enum": [
+        "line",
+        "bar",
+        "scatter",
+        "area",
+        "histogram",
+        "box",
+        "heatmap",
+        "violin",
+        "facet",
+        "linked",
+        "sankey",
+        "tree",
+        "funnel",
+        "density",
+        "geo",
+        "table"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "engine": {
+      "default": "auto",
+      "enum": [
+        "auto",
+        "plotly",
+        "matplotlib",
+        "altair",
+        "echarts",
+        "datashader",
+        "geo",
+        "plottable"
+      ],
+      "title": "Engine",
+      "type": "string"
+    },
+    "title": {
+      "default": "分析结果 / Analysis",
+      "title": "Title",
+      "type": "string"
+    },
+    "color": {
+      "default": "#256b88",
+      "pattern": "^#[0-9a-fA-F]{6}$",
+      "title": "Color",
+      "type": "string"
+    },
+    "theme": {
+      "default": "light",
+      "enum": [
+        "light",
+        "dark",
+        "report"
+      ],
+      "title": "Theme",
+      "type": "string"
+    },
+    "font": {
+      "default": "sans-serif",
+      "enum": [
+        "sans-serif",
+        "Noto Sans CJK SC",
+        "Microsoft YaHei"
+      ],
+      "title": "Font",
+      "type": "string"
+    },
+    "font_size": {
+      "default": 16,
+      "maximum": 40,
+      "minimum": 8,
+      "title": "Font Size",
+      "type": "integer"
+    },
+    "width": {
+      "default": 1000,
+      "maximum": 2400,
+      "minimum": 320,
+      "title": "Width",
+      "type": "integer"
+    },
+    "height": {
+      "default": 560,
+      "maximum": 1600,
+      "minimum": 240,
+      "title": "Height",
+      "type": "integer"
+    },
+    "annotation": {
+      "default": "",
+      "maxLength": 1000,
+      "title": "Annotation",
+      "type": "string"
+    },
+    "mapping": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {},
+      "title": "Mapping",
+      "type": "object"
+    },
+    "extensions": {
+      "additionalProperties": true,
+      "default": {},
+      "title": "Extensions",
+      "type": "object"
+    }
+  },
+  "title": "ChartSpec",
+  "type": "object"
+}

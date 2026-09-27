@@ -1,0 +1,169 @@
+{
+  "$defs": {
+    "Filter": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "op": {
+          "enum": [
+            "eq",
+            "ne",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "contains",
+            "in"
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value"
+        }
+      },
+      "required": [
+        "field",
+        "op",
+        "value"
+      ],
+      "title": "Filter",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "goal": {
+      "default": "",
+      "title": "Goal",
+      "type": "string"
+    },
+    "group_by": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 3,
+      "title": "Group By",
+      "type": "array"
+    },
+    "metric": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Metric"
+    },
+    "denominator": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Denominator"
+    },
+    "aggregation": {
+      "default": "sum",
+      "enum": [
+        "sum",
+        "mean",
+        "count",
+        "min",
+        "max",
+        "ratio_total",
+        "ratio_mean",
+        "raw"
+      ],
+      "title": "Aggregation",
+      "type": "string"
+    },
+    "filters": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Filter"
+      },
+      "title": "Filters",
+      "type": "array"
+    },
+    "time_grain": {
+      "default": "none",
+      "enum": [
+        "none",
+        "day",
+        "week",
+        "month",
+        "year"
+      ],
+      "title": "Time Grain",
+      "type": "string"
+    },
+    "missing": {
+      "default": "error",
+      "enum": [
+        "error",
+        "exclude",
+        "keep"
+      ],
+      "title": "Missing",
+      "type": "string"
+    },
+    "duplicates": {
+      "default": "keep",
+      "enum": [
+        "keep",
+        "drop_exact"
+      ],
+      "title": "Duplicates",
+      "type": "string"
+    },
+    "sort": {
+      "default": "none",
+      "enum": [
+        "none",
+        "asc",
+        "desc",
+        "label"
+      ],
+      "title": "Sort",
+      "type": "string"
+    },
+    "unit": {
+      "default": "",
+      "title": "Unit",
+      "type": "string"
+    },
+    "limitations": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "title": "AnalysisPlan",
+  "type": "object"
+}

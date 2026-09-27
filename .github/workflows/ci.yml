@@ -1,0 +1,46 @@
+name: verify
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    env:
+      PROVIDER: rule
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 24}
+      - uses: pnpm/action-setup@v4
+        with: {version: 11.25.0}
+      - uses: astral-sh/setup-uv@v6
+        with: {version: 0.12.19}
+      - run: uv sync --frozen --python 3.12
+      - name: Check exported Python dependencies
+        run: |
+          uv export --frozen --no-dev --no-emit-project --format requirements-txt --output-file requirements.txt > /dev/null
+          uv export --frozen --no-emit-project --format requirements-txt --output-file requirements-dev.txt > /dev/null
+          git diff --exit-code -- requirements.txt requirements-dev.txt
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir apps/web prepare-assets
+      - run: uv run playwright install --with-deps chromium
+      - run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+      - run: uv run python scripts/generate_samples.py
+      - run: pnpm typecheck && pnpm build && pnpm test
+      - run: uv run pytest -m 'not database' --junitxml=docs/evidence/pytest.xml
+      - run: docker compose -f infra/databases.compose.yaml up -d --wait
+      - run: uv run pytest -m database --junitxml=docs/evidence/databases.xml
+      - run: |
+          uv run uvicorn services.api.main:app --host 127.0.0.1 --port 8000 > /tmp/api.log 2>&1 &
+          uv run python -m services.worker.main > /tmp/worker.log 2>&1 &
+          pnpm dev > /tmp/web.log 2>&1 &
+          pnpm --dir apps/web exec playwright install --with-deps chromium
+          sleep 10
+          pnpm e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verification
+          path: |
+            docs/evidence
+            apps/web/playwright-report

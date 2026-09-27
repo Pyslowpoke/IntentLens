@@ -1,0 +1,371 @@
+{
+  "$defs": {
+    "AnalysisPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "goal": {
+          "default": "",
+          "title": "Goal",
+          "type": "string"
+        },
+        "group_by": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 3,
+          "title": "Group By",
+          "type": "array"
+        },
+        "metric": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Metric"
+        },
+        "denominator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Denominator"
+        },
+        "aggregation": {
+          "default": "sum",
+          "enum": [
+            "sum",
+            "mean",
+            "count",
+            "min",
+            "max",
+            "ratio_total",
+            "ratio_mean",
+            "raw"
+          ],
+          "title": "Aggregation",
+          "type": "string"
+        },
+        "filters": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Filter"
+          },
+          "title": "Filters",
+          "type": "array"
+        },
+        "time_grain": {
+          "default": "none",
+          "enum": [
+            "none",
+            "day",
+            "week",
+            "month",
+            "year"
+          ],
+          "title": "Time Grain",
+          "type": "string"
+        },
+        "missing": {
+          "default": "error",
+          "enum": [
+            "error",
+            "exclude",
+            "keep"
+          ],
+          "title": "Missing",
+          "type": "string"
+        },
+        "duplicates": {
+          "default": "keep",
+          "enum": [
+            "keep",
+            "drop_exact"
+          ],
+          "title": "Duplicates",
+          "type": "string"
+        },
+        "sort": {
+          "default": "none",
+          "enum": [
+            "none",
+            "asc",
+            "desc",
+            "label"
+          ],
+          "title": "Sort",
+          "type": "string"
+        },
+        "unit": {
+          "default": "",
+          "title": "Unit",
+          "type": "string"
+        },
+        "limitations": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        }
+      },
+      "title": "AnalysisPlan",
+      "type": "object"
+    },
+    "ChartSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "kind": {
+          "default": "bar",
+          "enum": [
+            "line",
+            "bar",
+            "scatter",
+            "area",
+            "histogram",
+            "box",
+            "heatmap",
+            "violin",
+            "facet",
+            "linked",
+            "sankey",
+            "tree",
+            "funnel",
+            "density",
+            "geo",
+            "table"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "engine": {
+          "default": "auto",
+          "enum": [
+            "auto",
+            "plotly",
+            "matplotlib",
+            "altair",
+            "echarts",
+            "datashader",
+            "geo",
+            "plottable"
+          ],
+          "title": "Engine",
+          "type": "string"
+        },
+        "title": {
+          "default": "分析结果 / Analysis",
+          "title": "Title",
+          "type": "string"
+        },
+        "color": {
+          "default": "#256b88",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Color",
+          "type": "string"
+        },
+        "theme": {
+          "default": "light",
+          "enum": [
+            "light",
+            "dark",
+            "report"
+          ],
+          "title": "Theme",
+          "type": "string"
+        },
+        "font": {
+          "default": "sans-serif",
+          "enum": [
+            "sans-serif",
+            "Noto Sans CJK SC",
+            "Microsoft YaHei"
+          ],
+          "title": "Font",
+          "type": "string"
+        },
+        "font_size": {
+          "default": 16,
+          "maximum": 40,
+          "minimum": 8,
+          "title": "Font Size",
+          "type": "integer"
+        },
+        "width": {
+          "default": 1000,
+          "maximum": 2400,
+          "minimum": 320,
+          "title": "Width",
+          "type": "integer"
+        },
+        "height": {
+          "default": 560,
+          "maximum": 1600,
+          "minimum": 240,
+          "title": "Height",
+          "type": "integer"
+        },
+        "annotation": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Annotation",
+          "type": "string"
+        },
+        "mapping": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "title": "Mapping",
+          "type": "object"
+        },
+        "extensions": {
+          "additionalProperties": true,
+          "default": {},
+          "title": "Extensions",
+          "type": "object"
+        }
+      },
+      "title": "ChartSpec",
+      "type": "object"
+    },
+    "Filter": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "op": {
+          "enum": [
+            "eq",
+            "ne",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "contains",
+            "in"
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value"
+        }
+      },
+      "required": [
+        "field",
+        "op",
+        "value"
+      ],
+      "title": "Filter",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "chart_id": {
+      "title": "Chart Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "dataset_id": {
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "plan": {
+      "$ref": "#/$defs/AnalysisPlan"
+    },
+    "spec": {
+      "$ref": "#/$defs/ChartSpec"
+    },
+    "code": {
+      "title": "Code",
+      "type": "string"
+    },
+    "result": {
+      "additionalProperties": true,
+      "title": "Result",
+      "type": "object"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    },
+    "artifacts": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {},
+      "title": "Artifacts",
+      "type": "object"
+    },
+    "created_at": {
+      "title": "Created At",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "chart_id",
+    "dataset_id",
+    "plan",
+    "spec",
+    "code",
+    "result",
+    "summary",
+    "created_at"
+  ],
+  "title": "ChartRevision",
+  "type": "object"
+}

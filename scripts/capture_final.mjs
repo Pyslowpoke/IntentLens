@@ -1,0 +1,12 @@
+import {createRequire} from 'node:module';
+const require=createRequire(new URL('../apps/web/package.json',import.meta.url));
+const {chromium}=require('@playwright/test');
+const browser=await chromium.launch({headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:2200}});
+await page.goto('http://127.0.0.1:3000');
+await page.frameLocator('iframe[title="Chart preview"]').locator('.barlayer .point').nth(3).waitFor({timeout:30000});
+await page.waitForTimeout(700);
+await page.screenshot({path:'docs/evidence/04-final-workbench.png',fullPage:true});
+await page.getByRole('button',{name:'EN',exact:true}).click();
+await page.screenshot({path:'docs/evidence/06-english-workbench.png',fullPage:true});
+await browser.close();

@@ -1,0 +1,15 @@
+.venv
+node_modules
+apps/web/node_modules
+apps/web/.next
+data
+.env
+.env.*
+.pytest_cache
+.coverage
+.local
+.git
+docs/evidence
+**/__pycache__
+**/test-results
+**/playwright-report
