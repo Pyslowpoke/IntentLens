@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="IntentLens interactive sample: confirm analysis definitions, compute from synthetic data, refine and download a chart. No installation or API key.">
+  <title>IntentLens · 观意 — Interactive demo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header><a class="brand" href="./">◈ <strong>IntentLens</strong><span>观意</span></a><nav><button id="language">English</button><a href="https://github.com/Pyslowpoke/IntentLens" target="_blank" rel="noopener">GitHub ↗</a></nav></header>
+  <main>
+    <section class="hero"><div class="eyebrow" data-i="eyebrow"></div><h1 data-i="headline"></h1><p data-i="intro"></p><div class="notice" data-i="notice"></div></section>
+    <div class="workspace">
+      <aside>
+        <div class="step" data-i="step1"></div><h2 data-i="dataTitle"></h2><p class="muted" data-i="dataDescription"></p>
+        <div class="stats"><div><strong>12</strong><span data-i="rows"></span></div><div><strong>4</strong><span data-i="regions"></span></div><div><strong>0</strong><span data-i="missing"></span></div></div>
+        <details><summary data-i="viewData"></summary><div class="table-scroll"><table id="source"></table></div></details>
+        <div class="step" data-i="step2"></div><h2 data-i="questionTitle"></h2>
+        <label for="question" data-i="questionLabel"></label><select id="question"><option value="sales" data-i="salesQuestion"></option><option value="conversion" data-i="conversionQuestion"></option></select>
+        <div class="plan"><strong data-i="planTitle"></strong><p id="plan"></p><label id="ratioLabel" for="ratio" data-i="ratioLabel"></label><select id="ratio"><option value="total" data-i="totalRatio"></option><option value="mean" data-i="meanRatio"></option></select><p class="muted" data-i="validation"></p></div>
+        <button class="primary" id="generate" data-i="generate"></button>
+        <p class="muted" data-i="fullVersion"></p><a class="text-link" href="https://github.com/Pyslowpoke/IntentLens/blob/main/START-HERE.md" data-i="install"></a>
+      </aside>
+      <section class="result">
+        <div class="result-heading"><div><div class="step" data-i="step3"></div><h2 data-i="resultTitle"></h2></div><span id="status" role="status" aria-live="polite"></span></div>
+        <div id="empty"><div class="empty-icon">▥</div><h3 data-i="emptyTitle"></h3><p data-i="emptyDescription"></p></div>
+        <div id="output" hidden>
+          <div id="chart" role="img"></div><p id="calculation" class="muted"></p>
+          <div class="controls"><label><span data-i="chartTitle"></span><input id="title" maxlength="80"></label><label><span data-i="sortLabel"></span><select id="sort"><option value="desc" data-i="descending"></option><option value="asc" data-i="ascending"></option></select></label><label><span data-i="colorLabel"></span><select id="color"><option value="#7463d7" data-i="purple"></option><option value="#257b91" data-i="blue"></option></select></label><button id="apply" data-i="apply"></button><button id="undo" data-i="undo"></button></div>
+          <div class="downloads"><button id="svg" data-i="downloadSvg"></button><button id="csv" data-i="downloadCsv"></button><button id="reproduce" data-i="reproduce"></button></div>
+          <details><summary data-i="computedData"></summary><table id="computed"></table></details><p id="feedback" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+    </div>
+    <section class="features"><article><span>01</span><h3 data-i="feature1"></h3><p data-i="feature1text"></p></article><article><span>02</span><h3 data-i="feature2"></h3><p data-i="feature2text"></p></article><article><span>03</span><h3 data-i="feature3"></h3><p data-i="feature3text"></p></article></section>
+    <footer><span data-i="footer"></span><a href="https://github.com/Pyslowpoke/IntentLens" data-i="star"></a></footer>
+  </main><script src="app.js"></script>
+</body></html>

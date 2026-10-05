@@ -1,5 +1,17 @@
 # 观意 IntentLens
 
+**Turn Excel/CSV into traceable charts: confirm the metric, compute from data, refine and export.**
+
+[Try the interactive sample](https://pyslowpoke.github.io/IntentLens/?lang=en) · [Install the full workbench](START-HERE.md) · [中文](README.zh-CN.md)
+
+![30-second interactive sample walkthrough](docs/evidence/intentlens-demo.gif)
+
+- **Inspect the definition:** explicit grouping, aggregation, ratio and missing-value rules.
+- **Keep a traceable result:** real calculations, chart revisions and reproduction packages.
+- **Refine and download:** edit a chart and export without losing the preview on export failure.
+
+The public sample runs locally in your browser on synthetic data, with rules rather than AI. It requires no installation, account or API key. The full workbench supports your own files and configured model conversations. [Demo scope and verification](docs/PUBLIC-DEMO.md).
+
 > New here? Read [START-HERE.md](START-HERE.md) for first-run setup and configuration. Windows launchers are provided in the repository root.
 
 A local, single-user analysis studio: import business data, choose a validated plan, run real calculations, revise a chart, and reopen its complete history. **Intent-driven analysis, grounded in evidence.** See the [product concept](docs/BRAND.md). **This is a development delivery, not a fully accepted V1 release**; see [verification](docs/VERIFICATION.md) and [status](docs/STATUS.md).

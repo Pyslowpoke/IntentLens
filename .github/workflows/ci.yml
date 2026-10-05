@@ -26,6 +26,7 @@ jobs:
       - run: uv run playwright install --with-deps chromium
       - run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - run: uv run python scripts/generate_samples.py
+      - run: uv run python scripts/verify_demo.py
       - run: pnpm typecheck && pnpm build && pnpm test
       - run: uv run pytest -m 'not database' --junitxml=docs/evidence/pytest.xml
       - run: docker compose -f infra/databases.compose.yaml up -d --wait

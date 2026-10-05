@@ -2,6 +2,16 @@ import {test,expect} from "@playwright/test";
 test("empty first sheet cannot silently import; selected second sheet with null category renders",async({page})=>{
   await page.route("**/api/model/status",r=>r.fulfill({json:{provider:"rule",model:"",ready:false}}));
   await page.addInitScript(()=>localStorage.setItem("intentlens.preferences.v1",JSON.stringify({language:"en",nickname:"",engine:"matplotlib",theme:"light"})));
+  // Exercise slow initial discovery: the user's new project must stay selected.
+  let initialProjects = true;
+  await page.route("**/api/projects", async route => {
+    if (route.request().method() === "GET" && initialProjects) {
+      initialProjects = false;
+      const response = await route.fetch();
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      await route.fulfill({response});
+    } else await route.continue();
+  });
   await page.goto("/");
   await page.getByRole("button",{name:"New analysis",exact:true}).click();
   await page.getByRole("button",{name:"Import data",exact:true}).click();

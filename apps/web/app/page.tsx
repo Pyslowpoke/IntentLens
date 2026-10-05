@@ -223,7 +223,9 @@ export default function Home() {
       const ps = await api<{ id: string; name: string }[]>("/projects");
       setProjects(ps);
       const saved = localStorage.getItem("workbench-project");
-      if (ps.length)
+      // A user may create/open a project while initial discovery is in flight.
+      // Do not replace that selection with an older project when discovery returns.
+      if (!activeId.current && ps.length)
         await open(ps.some((p) => p.id === saved) ? saved! : ps[0].id);
     });
     return () => eventRef.current?.close();
@@ -351,6 +353,7 @@ export default function Home() {
         <Button
           className="new-project"
           variant="outline"
+          disabled={busy}
           onClick={() => guarded(create)}
         >
           <Plus size={16} />
@@ -531,6 +534,7 @@ export default function Home() {
                     </p>
                     <div>
                       <Button
+                        disabled={busy}
                         onClick={() => {
                           setPreview(null);
                           setModal("import");
@@ -1391,6 +1395,7 @@ export default function Home() {
                 <input
                   ref={fileInput}
                   type="file"
+                  disabled={busy}
                   accept=".csv,.tsv,.xlsx"
                   onChange={(e) => {
                     guarded(() => chooseFile(e.target.files?.[0] || null));
