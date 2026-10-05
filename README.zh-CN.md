@@ -1,20 +1,61 @@
-# 观意 IntentLens
+<div align="center">
 
-**把 Excel/CSV 变成可追溯的图表：先确认分析口径，再执行真实计算，支持连续改图和版本回溯。**
+![IntentLens — Intent to view](docs/assets/banner.svg)
 
-[直接体验合成数据](https://pyslowpoke.github.io/IntentLens/) · [安装完整工作台](START-HERE.md) · [English](README.md)
+# IntentLens · 观意
 
-![30 秒样例体验演示](docs/evidence/intentlens-demo.gif)
+**把 Excel / CSV 变成口径明确、可以追溯的图表。**
 
-- **口径可检查：**分组、聚合、比例与缺失值处理规则明确。
-- **结果可追溯：**数字由数据计算，支持图表版本与可复现包。
-- **图表可调整、可带走：**修改并下载，导出失败时保留预览。
+[![Verify](https://github.com/Pyslowpoke/IntentLens/actions/workflows/ci.yml/badge.svg)](https://github.com/Pyslowpoke/IntentLens/actions/workflows/ci.yml) [![Demo](https://img.shields.io/badge/demo-try%20in%20browser-7463d7?style=flat-square)](https://pyslowpoke.github.io/IntentLens/) ![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square) ![Next.js](https://img.shields.io/badge/Next.js-16-171717?style=flat-square)
 
-公开体验使用合成数据和规则模式，计算在浏览器完成，不调用 AI；无需安装、注册或密钥。完整工作台支持自己的文件与已配置模型的多轮讨论。[体验范围与验证](docs/PUBLIC-DEMO.md)。
+[在线体验](https://pyslowpoke.github.io/IntentLens/) · [快速安装](START-HERE.md) · [真实验证](docs/LIVE-VALIDATION.md) · [English](README.md)
 
-> **第一次下载？先看 [第一次使用指南](START-HERE.md)。** Windows：安装运行工具后双击 `首次安装.cmd`；以后双击 `启动观意.cmd`；配置 API 双击 `编辑配置.cmd`。
+</div>
 
-面向产品、运营与分析人员的本地单用户工作台：输入数据、描述问题、选择分析方案、执行真实计算、连续改图、导出并恢复历史。**先理解问题，再看见答案。** 品牌理念见 [观意的产品概念](docs/BRAND.md)。**当前交付是可运行的开发版本，尚不能称为全部验收通过的 V1。** 事实与缺项见 [验证报告](docs/VERIFICATION.md) 和 [阶段状态](docs/STATUS.md)。
+---
+
+观意是面向产品、运营与分析人员的本地单用户数据可视化工作台。导入数据、讨论问题、确认方案、执行真实计算，再连续改图、下载与回溯版本。
+
+## 30 秒看懂观意
+
+[![规则样例：确认口径、生成图表、调整与下载](docs/evidence/intentlens-demo.gif)](https://pyslowpoke.github.io/IntentLens/)
+
+> **直接体验，无需安装或密钥。** 上方演示与在线样例使用合成数据、规则模式，不调用 AI。完整工作台支持自己的 Excel/CSV 和已配置模型的多轮讨论。[了解演示范围 →](docs/PUBLIC-DEMO.md)
+
+## 为什么使用 IntentLens
+
+| 明确口径 | 真实计算 | 留下依据 |
+| :--- | :--- | :--- |
+| 查看分组、聚合、比例和缺失值规则，确认后执行。 | 从数据快照计算数字；未知字段会被校验拒绝。 | 图表版本、分析方案与可复现包一起保存。 |
+
+**从问题到可带走的结果**
+
+`导入数据 → 讨论需求 → 确认方案 → 真实计算 → 调整图表 → 下载 / 回溯`
+
+支持中英文、绘图偏好和多种引擎。先交付可用图表，其他格式按需导出；导出失败保留预览。
+
+<details>
+<summary>查看完整本地工作台</summary>
+
+![IntentLens 完整工作台](docs/evidence/intentlens-cover.png)
+
+</details>
+
+**项目状态：可运行的开发版本。** 面向可信本机单用户，尚未完成全部 V1 验收；[阶段状态](docs/STATUS.md)与[安全边界](docs/SECURITY.md)说明适用范围。
+
+[启动](#启动) · [能力矩阵](#能力矩阵) · [计算口径](#计算口径) · [模型与安全](#模型执行与安全) · [验证](#验证演示贡献)
+
+---
+
+## 从一个常见问题开始
+
+| 你想知道 | 执行前确认 |
+| :--- | :--- |
+| 哪个地区贡献的销售额最多？ | 地区分组、销售额求和、排序。 |
+| 总体转化率是多少？ | 分子与分母分别求和，区别于每行比例的简单平均。 |
+| 这张图能否用于报告？ | 确认口径、调整样式、下载支持的格式，并保留可复现包。 |
+
+**Windows 入门：**先看[第一次使用指南](START-HERE.md)，安装运行工具后双击 `首次安装.cmd`；以后双击 `启动观意.cmd`。规则模式无需密钥；AI 多轮讨论需要[配置模型](docs/DEEPSEEK.md)。
 
 ## 启动
 
@@ -109,3 +150,14 @@ PostgreSQL/MySQL 使用受限只读账号、只读事务、5 秒超时；SQLite 
 运行 `uv run pytest`、`pnpm typecheck`、`pnpm build`、`pnpm test`。三服务启动后运行 `pnpm e2e`。性能记录由 `uv run python -m scripts.benchmark` 生成，绘图检查由 `uv run python -m scripts.render_gallery` 生成。百万行基准是全量聚合成 20 组，不是百万个 SVG 标记，也不是竞品领先声明。
 
 [演示步骤](docs/DEMO.md)、[验证证据](docs/VERIFICATION.md)、[贡献约定](CONTRIBUTING.md)、[第三方许可](docs/THIRD_PARTY.md)。建议仓库采用 Apache-2.0，但尚未替用户决定许可证或创建 LICENSE。分发前需保留依赖许可，特别是 LGPL psycopg、MPL certifi。未创建云资源、未公开发布、未发送宣传内容。
+
+
+---
+
+## 反馈与参与
+
+使用中遇到问题？[提交 Issue](https://github.com/Pyslowpoke/IntentLens/issues/new)，附上复现步骤、环境版本、预期与实际结果；请勿附带 API 密钥或私人数据。文档改进、合成示例和可复现的边界案例都很有帮助。
+
+如果项目对你有用，欢迎 Star 收藏；具体的使用反馈同样重要。
+
+[贡献约定](CONTRIBUTING.md) · [第三方许可](docs/THIRD_PARTY.md)

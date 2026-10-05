@@ -1,24 +1,60 @@
-# 观意 IntentLens
+<div align="center">
 
-**Turn Excel/CSV into traceable charts: confirm the metric, compute from data, refine and export.**
+![IntentLens — Intent to view](docs/assets/banner.svg)
 
-[Try the interactive sample](https://pyslowpoke.github.io/IntentLens/?lang=en) · [Install the full workbench](START-HERE.md) · [中文](README.zh-CN.md)
+# IntentLens · 观意
 
-![30-second interactive sample walkthrough](docs/evidence/intentlens-demo.gif)
+**Turn Excel / CSV into charts with definitions you can inspect.**
 
-- **Inspect the definition:** explicit grouping, aggregation, ratio and missing-value rules.
-- **Keep a traceable result:** real calculations, chart revisions and reproduction packages.
-- **Refine and download:** edit a chart and export without losing the preview on export failure.
+[![Verify](https://github.com/Pyslowpoke/IntentLens/actions/workflows/ci.yml/badge.svg)](https://github.com/Pyslowpoke/IntentLens/actions/workflows/ci.yml) [![Demo](https://img.shields.io/badge/demo-try%20in%20browser-7463d7?style=flat-square)](https://pyslowpoke.github.io/IntentLens/) ![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square) ![Next.js](https://img.shields.io/badge/Next.js-16-171717?style=flat-square)
 
-The public sample runs locally in your browser on synthetic data, with rules rather than AI. It requires no installation, account or API key. The full workbench supports your own files and configured model conversations. [Demo scope and verification](docs/PUBLIC-DEMO.md).
+[Try the demo](https://pyslowpoke.github.io/IntentLens/?lang=en) · [Quick install](START-HERE.md) · [Live validation](docs/LIVE-VALIDATION.md) · [简体中文](README.zh-CN.md)
 
-> New here? Read [START-HERE.md](START-HERE.md) for first-run setup and configuration. Windows launchers are provided in the repository root.
+</div>
 
-A local, single-user analysis studio: import business data, choose a validated plan, run real calculations, revise a chart, and reopen its complete history. **Intent-driven analysis, grounded in evidence.** See the [product concept](docs/BRAND.md). **This is a development delivery, not a fully accepted V1 release**; see [verification](docs/VERIFICATION.md) and [status](docs/STATUS.md).
+---
 
-[中文说明](README.zh-CN.md) · [Architecture decisions](docs/DECISIONS.md) · [Security boundaries](docs/SECURITY.md) · [Synthetic samples](samples/DICTIONARY.md)
+A local, single-user visualization workbench for product, operations and analysis teams. Import data, discuss a question, approve a plan, compute real results, then refine, export and revisit your charts.
 
-![Workbench](docs/evidence/intentlens-cover.png)
+## See it in 30 seconds
+
+[![Rule-based sample: approve, compute, refine and download](docs/evidence/intentlens-demo.gif)](https://pyslowpoke.github.io/IntentLens/?lang=en)
+
+> **Try it without installation or an API key.** The walkthrough and public sample use synthetic data and rules, not AI. The full workbench supports your own Excel/CSV files and configured model conversations. [Demo scope →](docs/PUBLIC-DEMO.md)
+
+## Why IntentLens
+
+| Clear definitions | Computed results | Traceable work |
+| :--- | :--- | :--- |
+| Inspect grouping, aggregation, ratios and missing-value rules before execution. | Calculate from a data snapshot; reject unknown fields before execution. | Keep chart revisions, analysis plans and reproduction packages together. |
+
+**From a question to a result you can keep**
+
+`Import → Discuss → Approve → Compute → Refine → Export / Revisit`
+
+Chinese/English, visualization preferences and multiple engines. Publish a usable preview first; generate other formats on demand. Export errors preserve the chart.
+
+<details>
+<summary>Explore the full local workbench</summary>
+
+![IntentLens full workbench](docs/evidence/intentlens-cover.png)
+
+</details>
+
+**Status: runnable development version.** Intended for a trusted local user; full V1 acceptance remains incomplete. See [status](docs/STATUS.md), [security boundaries](docs/SECURITY.md) and [product concept](docs/BRAND.md).
+
+[Quick start](#quick-start) · [Engines](#capability-matrix) · [Models](#models-and-privacy) · [Validation](#validation-and-benchmarks) · [Contributing](#contributing-and-license)
+
+---
+
+## Designed for inspectable analysis
+
+| Question | Project boundary |
+| :--- | :--- |
+| Does it execute arbitrary model code? | No. Models propose declarative plans; controlled operations compute the results. |
+| Is inference always local? | No. Remote model mode sends field metadata and statistics by default; metadata can be sensitive. Rule mode needs no model key. |
+| Can I reproduce a result? | Export the plan, chart configuration and dependency lock. The default bundle excludes data rows; a separate labeled option includes the snapshot. |
+| Is it ready for a public multi-user service? | Native mode is for a trusted local user. Authentication and multi-tenancy are not implemented. |
 
 ## Quick start
 
@@ -141,3 +177,14 @@ See [STATUS](docs/STATUS.md) for unfinished mandatory acceptance. Native mode do
 ## Contributing and license
 
 Read [CONTRIBUTING](CONTRIBUTING.md). A permissive **Apache-2.0** repository license is suggested, subject to the owner's decision; no project LICENSE has been imposed. Dependency license inventories and obligations are in [THIRD_PARTY](docs/THIRD_PARTY.md). Retain original dependency notices, including LGPL psycopg and MPL certifi obligations, when distributing. Official database binaries and Windows fonts are not redistributed by this project.
+
+
+---
+
+## Feedback & contributions
+
+[Report a reproducible issue](https://github.com/Pyslowpoke/IntentLens/issues/new) or [propose a change](https://github.com/Pyslowpoke/IntentLens/compare). Include environment versions, steps and expected/actual behavior. Remove credentials and private data from examples. Documentation fixes, synthetic fixtures and regression cases are welcome.
+
+If this is useful, a Star helps others discover it. Reproducible feedback helps improve it.
+
+[Contribution guide](CONTRIBUTING.md) · [Third-party notices](docs/THIRD_PARTY.md)
