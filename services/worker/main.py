@@ -18,7 +18,7 @@ log = logging.getLogger("worker")
 def execute_job(id):
     import pandas as pd
     from services.api.compute import compute, cache_key
-    from services.api.render import render, resolve
+    from services.api.render import render, resolve, REGISTRY
     with store.connect() as c:
         row=c.execute("SELECT * FROM jobs WHERE id=?",(id,)).fetchone()
     run,payload=json.loads(row["body"]),json.loads(row["payload"])
@@ -35,18 +35,18 @@ def execute_job(id):
         cached.write_text(json.dumps(result,ensure_ascii=False,allow_nan=False),encoding="utf-8")
     compute_ms=(time.perf_counter()-start)*1000
     dest=store.root()/"artifacts"/id
-    render_key=hashlib.sha256((key+spec.model_dump_json()+"themes-v3-render-v8").encode()).hexdigest()
+    render_key=hashlib.sha256((key+spec.model_dump_json()+"preview-v9").encode()).hexdigest()
     render_cache=store.root()/"cache"/render_key
     render_hit=(render_cache/"manifest.json").exists()
     if render_hit:
         shutil.copytree(render_cache,dest,dirs_exist_ok=True)
         artifacts=json.loads((dest/"manifest.json").read_text())
     else:
-        artifacts=render(result,spec,dest)
+        artifacts=render(result,spec,dest,preview_only=True)
         shutil.copytree(dest,render_cache,dirs_exist_ok=True)
         (render_cache/"manifest.json").write_text(json.dumps(artifacts))
     code="from services.api.compute import compute\nfrom services.api.contracts import AnalysisPlan\nimport pandas as pd, json\n# Restore the referenced snapshot as data.parquet before running.\ndataset=json.load(open('dataset.json', encoding='utf-8'))\nplan=AnalysisPlan.model_validate(json.load(open('plan.json', encoding='utf-8')))\nresult=compute(pd.read_parquet('data.parquet'),plan,dataset)\nprint(result)\nfrom services.api.render import render\nfrom services.api.contracts import ChartSpec\nfrom pathlib import Path\nspec=ChartSpec.model_validate(json.load(open('chart.json', encoding='utf-8')))\nrender(result,spec,Path('output'))\n"
-    revision=ChartRevision(id=id, chart_id=run["chart_id"],parent_id=run["parent_id"],dataset_id=run["dataset_id"],plan=plan,spec=spec,code=code,result=result,summary=payload["summary"],artifacts=artifacts,created_at=store.now()).model_dump()
+    revision=ChartRevision(id=id, chart_id=run["chart_id"],parent_id=run["parent_id"],dataset_id=run["dataset_id"],plan=plan,spec=spec,code=code,result=result,summary=payload["summary"],artifacts=artifacts,available_exports=REGISTRY[resolve(spec)]["formats"],created_at=store.now()).model_dump()
     revision["result"]["execution"]={"compute_ms":compute_ms,"render_ms":(time.perf_counter()-start)*1000-compute_ms,"compute_cache_hit":hit,"render_cache_hit":render_hit,"engine":resolve(spec),"render_key":render_key}
     (dest/"revision.json").write_text(json.dumps(revision,ensure_ascii=False,allow_nan=False),encoding="utf-8")
 
@@ -64,6 +64,19 @@ def step():
         if not row: return False
         run=json.loads(row["body"])
         store.event(c,run,"compute and render / 计算与绘图","running")
+    try:
+        return _run_claimed(run)
+    except Exception:
+        log.exception("Job execution or publication failed")
+        with store.connect() as c:
+            c.execute("BEGIN IMMEDIATE")
+            current=json.loads(c.execute("SELECT body FROM jobs WHERE id=?",(run["id"],)).fetchone()[0])
+            if current["status"] == "running":
+                store.event(c,current,"failed","failed","绘图执行或结果保存失败，请重试 / Execution or result publication failed; retry available")
+        return True
+
+
+def _run_claimed(run):
     # Explicit environment allowlist: child does not inherit model/database credentials.
     env={k:v for k,v in os.environ.items() if k.upper() in ("PATH","SYSTEMROOT","WINDIR","TEMP","TMP","HOME","USERPROFILE","LOCALAPPDATA","APPDATA","PLAYWRIGHT_BROWSERS_PATH","BROWSER_PATH","MPLCONFIGDIR","FONTCONFIG_PATH")}
     env.update(WORKBENCH_DATA=str(store.root()),PYTHONPATH=str(Path(__file__).resolve().parents[2]),PYTHONIOENCODING="utf-8")

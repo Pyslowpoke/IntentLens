@@ -95,6 +95,7 @@ def create_project(body:dict):
 
 @app.get("/projects/{id}")
 def get_project(id:str):
+    store.expire_jobs()
     p=store.project(id)
     p["dataset"]=store.get("dataset",p["dataset_id"]) if p["dataset_id"] else None
     p["revision"]=store.get("revision",p["head"]) if p["head"] else None
@@ -273,6 +274,7 @@ def edit(id:str,body:dict):
 
 @app.get("/runs/{id}")
 def get_run(id:str):
+    store.expire_jobs()
     with store.connect() as c: row=c.execute("SELECT body FROM jobs WHERE id=?",(id,)).fetchone()
     if not row: raise ValueError("Run not found")
     return json.loads(row[0])
@@ -304,6 +306,7 @@ async def events(id:str,request:Request,after:int=0):
     async def stream():
         seq=max(after,int(request.headers.get("last-event-id","0")))
         while not await request.is_disconnected():
+            store.expire_jobs()
             with store.connect() as c: rows=c.execute("SELECT seq,body FROM events WHERE run_id=? AND seq>? ORDER BY seq",(id,seq)).fetchall()
             for row in rows:
                 seq=row["seq"]
@@ -317,8 +320,28 @@ async def events(id:str,request:Request,after:int=0):
 @app.get("/revisions/{id}/artifact/{format}")
 def artifact(id:str,format:str,download:bool=False):
     revision=store.get("revision",id)
-    if format not in revision["artifacts"]: raise ValueError("Format unavailable")
-    path=store.root()/"artifacts"/id/revision["artifacts"][format]
+    if format not in revision["artifacts"] and format not in revision.get("available_exports",[]): raise ValueError("Format unavailable")
+    path=store.root()/"artifacts"/id/revision["artifacts"].get(format,f"chart.{format}")
+    if not path.is_file():
+        import subprocess, sys, psutil
+        allowed={"PATH","SYSTEMROOT","WINDIR","TEMP","TMP","HOME","USERPROFILE","LOCALAPPDATA","APPDATA","PLAYWRIGHT_BROWSERS_PATH","BROWSER_PATH","MPLCONFIGDIR","FONTCONFIG_PATH"}
+        env={k:v for k,v in os.environ.items() if k.upper() in allowed}
+        env.update(WORKBENCH_DATA=str(store.root()),PYTHONPATH=str(Path(__file__).resolve().parents[2]),PYTHONIOENCODING="utf-8")
+        process=subprocess.Popen([sys.executable,"-m","services.worker.export",id,format],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        try:
+            process.wait(timeout=45)
+        except subprocess.TimeoutExpired:
+            try:
+                parent=psutil.Process(process.pid)
+                for child in parent.children(recursive=True):
+                    try: child.kill()
+                    except psutil.NoSuchProcess: pass
+                parent.kill()
+            except psutil.NoSuchProcess: pass
+            process.wait()
+            raise ValueError("导出超时，图表已保留，请重试或下载 HTML / Export timed out; chart remains available")
+        if process.returncode or not path.is_file():
+            raise ValueError("文件导出失败，图表已保留。图片导出请检查 Playwright 浏览器安装，或下载 HTML / Export failed; chart remains available")
     return FileResponse(path,filename=f"intentlens-{id[:8]}.{format}" if download else None,headers={"Content-Security-Policy":"default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; worker-src blob:; connect-src 'none'"} if format=="html" else {})
 
 

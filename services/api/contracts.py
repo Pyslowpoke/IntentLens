@@ -82,6 +82,7 @@ class ChartRevision(Contract):
     result: dict
     summary: str
     artifacts: dict[str, str] = {}
+    available_exports: list[str] = []
     created_at: str
 
 

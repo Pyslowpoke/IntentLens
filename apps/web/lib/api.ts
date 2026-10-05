@@ -66,6 +66,7 @@ export type Revision = {
   summary: string;
   created_at: string;
   artifacts: Record<string, string>;
+  available_exports?: string[];
 };
 export type Run = {
   id: string;

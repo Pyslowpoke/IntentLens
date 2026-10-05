@@ -4,7 +4,7 @@ from pathlib import Path
 from dotenv import dotenv_values
 
 ROOT = Path(__file__).resolve().parents[1]
-COMMON = {"WORKBENCH_DATA", "RUN_TIMEOUT", "RUN_MAX_MB"}
+COMMON = {"WORKBENCH_DATA", "RUN_TIMEOUT", "RUN_MAX_MB", "RUN_QUEUE_TIMEOUT"}
 API = COMMON | {"MAX_UPLOAD_MB", "MAX_ROWS", "PROVIDER", "MODEL", "MODEL_BASE_URL", "MODEL_API_KEY", "DB_SOURCES_JSON", "SQLITE_FILES_JSON"}
 
 

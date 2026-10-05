@@ -40,14 +40,10 @@ test("real import → recommendation → render → five edits → export → re
   await edit("筛选 地区=华东");
   await edit("撤销");
   await expect(
-    page.getByRole("link", { name: "PNG", exact: true }),
+    page.getByRole("button", { name: "PNG", exact: true }),
   ).toBeVisible();
-  const png = await page
-    .getByRole("link", { name: "PNG", exact: true })
-    .getAttribute("href");
-  expect((await page.request.get(png!)).status()).toBe(200);
   const downloadEvent=page.waitForEvent("download");
-  await page.getByRole("link",{name:"一键下载图片",exact:true}).click();
+  await page.getByRole("button",{name:"下载图片",exact:true}).click();
   const downloaded=await downloadEvent;
   expect(downloaded.suggestedFilename()).toMatch(/^intentlens-.*\.png$/);
   expect(await downloaded.failure()).toBeNull();

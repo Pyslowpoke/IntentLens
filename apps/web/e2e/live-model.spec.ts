@@ -1,0 +1,32 @@
+import {test, expect} from "@playwright/test";
+import {writeFile} from "node:fs/promises";
+
+test("real configured model discussion delivers actual chart and downloadable PNG", async ({page}, info) => {
+  test.skip(process.env.ALLOW_LIVE_MODEL_TEST!=="1", "Explicit opt-in only; consumes model credits.");
+  await page.goto("/");
+  await page.getByRole("button", {name:"新建分析项目"}).click();
+  await page.getByRole("button", {name:"销售订单", exact:true}).click();
+  await expect(page.getByText("720 行")).toBeVisible();
+  await page.locator('.goal-panel textarea').fill('按地区汇总销售额并降序排列，不做因果分析。缺失值保留，使用 Plotly 交互柱状图。');
+  const recommendStart=Date.now();
+  await page.getByRole("button", {name:"生成分析方案"}).click();
+  await expect(page.locator(".proposal").first()).toBeVisible({timeout:90000});
+  const recommendMilliseconds=Date.now()-recommendStart;
+  await expect(page.locator('.response-source')).toContainText('deepseek');
+  await page.getByLabel('Analysis follow-up').fill('保持刚才的地区分组、销售额求和及降序，只将标题设为地区销售额对比。继续使用 Plotly。');
+  const followupStart=Date.now();
+  await page.getByRole('button',{name:'继续讨论',exact:true}).click();
+  await expect(page.locator('.conversation-message')).toHaveCount(4,{timeout:90000});
+  await expect(page.locator('.proposal').first()).toContainText('地区销售额对比');
+  const followupMilliseconds=Date.now()-followupStart;
+  const executeStart=Date.now();
+  await page.locator('.proposal').first().click();
+  await expect(page.frameLocator('.chart-preview iframe').locator('.barlayer .point').first()).toBeVisible({timeout:30000});
+  const chartMilliseconds=Date.now()-executeStart;
+  const downloadEvent=page.waitForEvent('download');
+  await page.getByRole('button',{name:'下载图片',exact:true}).click();
+  const download=await downloadEvent;
+  expect(await download.failure()).toBeNull();
+  await page.screenshot({path:info.outputPath('live-model.png'),fullPage:true});
+  await writeFile(info.outputPath('timings.json'),JSON.stringify({date:new Date().toISOString(),provider:'deepseek',data:'synthetic sales sample',recommendMilliseconds,followupMilliseconds,chartMilliseconds},null,2));
+});

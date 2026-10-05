@@ -1,0 +1,33 @@
+import {test, expect} from "@playwright/test";
+import {writeFile} from "node:fs/promises";
+
+test("deliver actual chart before exports; download failure preserves chart", async ({page}, info) => {
+  await page.route("**/api/model/status", route => route.fulfill({json:{provider:"rule", model:"", ready:false}}));
+  await page.goto("/");
+  await page.getByRole("button", {name:"新建分析项目"}).click();
+  await page.getByRole("button", {name:"销售订单", exact:true}).click();
+  await expect(page.getByText("720 行")).toBeVisible();
+  await page.getByRole("button", {name:"生成分析方案"}).click();
+  const start = Date.now();
+  await page.locator(".proposal").filter({hasText:"地区 ·"}).click();
+  await expect(page.frameLocator(".chart-preview iframe").locator(".barlayer .point").first()).toBeVisible({timeout:30000});
+  const chartMilliseconds = Date.now() - start;
+  const revision = await page.locator(".engine-tag").innerText();
+  await page.route("**/api/revisions/*/artifact/png?download=true", route => route.fulfill({status:422,json:{detail:"文件导出失败，图表已保留。"}}));
+  await page.getByRole("button",{name:"下载图片",exact:true}).click();
+  await expect(page.locator('.operation-feedback[role="alert"]')).toContainText("图表已保留");
+  await expect(page.frameLocator(".chart-preview iframe").locator(".barlayer .point").first()).toBeVisible();
+  await expect(page.locator(".engine-tag")).toHaveText(revision);
+  await page.unroute("**/api/revisions/*/artifact/png?download=true");
+  const exportStart = Date.now();
+  const downloading = page.waitForEvent("download");
+  await page.getByRole("button",{name:"下载图片",exact:true}).click();
+  const download = await downloading;
+  expect(await download.failure()).toBeNull();
+  expect(download.suggestedFilename()).toMatch(/\.png$/);
+  const exportMilliseconds = Date.now() - exportStart;
+  await page.reload();
+  await expect(page.locator(".engine-tag")).toHaveText(revision);
+  await expect(page.frameLocator(".chart-preview iframe").locator(".barlayer .point").first()).toBeVisible();
+  await writeFile(info.outputPath("timings.json"),JSON.stringify({date:new Date().toISOString(),mode:"rule, synthetic sample",chartMilliseconds,exportMilliseconds},null,2));
+});

@@ -39,7 +39,7 @@ def mpl_setup(spec):
     return plt
 
 
-def render(result, spec: ChartSpec, dest: Path):
+def render(result, spec: ChartSpec, dest: Path, preview_only=False):
     import pandas as pd
     dest.mkdir(parents=True, exist_ok=True)
     engine = resolve(spec)
@@ -65,13 +65,6 @@ def render(result, spec: ChartSpec, dest: Path):
     if long_labels and engine in ("altair","echarts"):
         df[x]=df[x].map(lambda value:textwrap.fill(str(value),18))
     if engine == "plotly":
-        import os
-        if not os.getenv("BROWSER_PATH"):
-            from playwright.sync_api import sync_playwright
-            with sync_playwright() as p:
-                browser_path = Path(p.chromium.executable_path)
-                shells = list(browser_path.parents[2].glob("chromium_headless_shell-*/chrome-headless-shell-*/chrome-headless-shell*"))
-                os.environ["BROWSER_PATH"] = str(next((s for s in shells if s.is_file()), browser_path))
         import plotly.express as px
         options = dict(data_frame=df, x=x, y=y, title=spec.title, labels=labels, color_discrete_sequence=[spec.color])
         if spec.kind == "histogram":
@@ -97,11 +90,13 @@ def render(result, spec: ChartSpec, dest: Path):
         if spec.theme=="report": fig.update_xaxes(showgrid=False); fig.update_yaxes(showgrid=False,showline=True)
         if spec.annotation:
             fig.add_annotation(text=spec.annotation.replace("<", "&lt;"), x=.5, y=1.08, xref="paper", yref="paper", showarrow=False)
-        import plotly.io as pio
-        formats=["png","svg","pdf"]
-        pio.write_images([fig]*3,[str(dest/f"chart.{fmt}") for fmt in formats],format=formats,width=spec.width,height=spec.height)
-        artifacts.update({fmt:f"chart.{fmt}" for fmt in formats})
         (dest / "plotly.json").write_text(fig.to_json(), encoding="utf-8")
+        if not preview_only:
+            configure_export_browser()
+            import plotly.io as pio
+            formats=["png","svg","pdf"]
+            pio.write_images([fig]*3,[str(dest/f"chart.{fmt}") for fmt in formats],format=formats,width=spec.width,height=spec.height)
+            artifacts.update({fmt:f"chart.{fmt}" for fmt in formats})
         fig.update_layout(width=None, autosize=True)
         fig.write_html(str(dest / "chart.html"), include_plotlyjs=True, full_html=True, config={"responsive":True})
         artifacts.update(html="chart.html", plotly="plotly.json")
@@ -187,7 +182,7 @@ def render(result, spec: ChartSpec, dest: Path):
         if annotation: fig.text(.5,.02,annotation,ha="center",fontsize=spec.font_size-2,color=fg)
         bottom=min(.3,max(.06,(annotation.count('\n')+1)*spec.font_size*1.5/spec.height+.03)) if annotation else .03
         fig.tight_layout(rect=(0,bottom,1,.98))
-        for fmt in (["png"] if engine=="geo" else ["png","svg","pdf"]):
+        for fmt in (["png"] if engine=="geo" or preview_only else ["png","svg","pdf"]):
             fig.savefig(dest/f"chart.{fmt}", dpi=100, facecolor=bg)
             artifacts[fmt] = f"chart.{fmt}"
         plt.close(fig)
@@ -222,6 +217,9 @@ def render(result, spec: ChartSpec, dest: Path):
         chart = chart.properties(title=alt.Title(spec.title,subtitle=[spec.annotation] if spec.annotation else [],anchor="start",offset=20)).configure(background=bg,font="Microsoft YaHei").configure_axis(labelColor=fg,titleColor=fg,labelFontSize=spec.font_size,titleFontSize=spec.font_size,grid=spec.theme!="report").configure_title(color=fg,fontSize=spec.font_size+4,subtitleColor=fg)
         obj = chart.to_dict(validate=True)
         (dest/"vega.json").write_text(json.dumps(obj,ensure_ascii=False),encoding="utf-8")
+        if preview_only:
+            chart.save(str(dest/"chart.html"),inline=True)
+            return {"html": "chart.html"}
         import xml.etree.ElementTree as ET
         svg=vlc.vegalite_to_svg(obj)
         element=ET.fromstring(svg)
@@ -270,6 +268,8 @@ def render(result, spec: ChartSpec, dest: Path):
         safe_options=options.replace("</", "<\\/")
         html=f'<html><meta charset="utf-8"><body style="margin:0"><div id="chart" style="width:100vw;height:100vh"></div><script>{js}</script><script>const chart=echarts.init(document.getElementById("chart"));chart.setOption({safe_options});window.addEventListener("resize",()=>chart.resize());</script></body></html>'
         (dest/"chart.html").write_text(html,encoding="utf-8")
+        if preview_only:
+            return {"html": "chart.html"}
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
             browser=p.chromium.launch(headless=True)
@@ -300,3 +300,19 @@ def render(result, spec: ChartSpec, dest: Path):
         (dest/"density.json").write_text(json.dumps({"meaning":"count per pixel; logarithmic color; no per-point hover","viewport":ranges,"points_in_view":int(agg.sum()),"max_count":int(agg.max())}),encoding="utf-8")
     (dest/"engine.json").write_text(json.dumps({"engine":engine,"capabilities":REGISTRY[engine]}),encoding="utf-8")
     return artifacts
+
+
+def configure_export_browser():
+    """Playwright uses chrome-headless-shell.exe on Windows, a different layout."""
+    import os
+    if os.getenv("BROWSER_PATH") and Path(os.environ["BROWSER_PATH"]).is_file():
+        return
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as p:
+        browser_path = Path(p.chromium.executable_path)
+        cache = browser_path.parents[2]
+        candidates = [s for s in cache.glob("chromium_headless_shell-*/**/chrome-headless-shell*") if s.is_file() and (s.suffix == ".exe" or s.name == "chrome-headless-shell")]
+        executable = next(iter(sorted(candidates, reverse=True)), browser_path)
+        if not executable.is_file():
+            raise ValueError("图片导出需要浏览器，请运行 .venv/Scripts/python.exe -m playwright install chromium；交互图仍可使用 / Export browser is missing; interactive chart remains available")
+        os.environ["BROWSER_PATH"] = str(executable)

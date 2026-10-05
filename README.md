@@ -53,8 +53,14 @@ Open **Settings** in the top-right corner to choose Chinese or English, a nickna
 2. Describe a business question. Rule mode produces 2–3 explicit descriptive plans without claiming an AI call. Configured model mode proposes 2–4 plans using server-side adapters. Review assumptions and missing denominators.
 3. Run a plan. Every number is calculated from the immutable Parquet snapshot. Advanced JSON exposes stable field IDs, grouping, filters, missing-value policy, time grain, sums/means/counts and both ratio definitions.
 4. Refine the current chart with `title: Regional sales`, `blue`, `descending`, `filter Region=East`, `undo`, or Chinese equivalents. Bound chart/revision IDs prevent cross-chart edits. Model mode can translate additional instructions; all resulting plans are validated. Advanced JSON supports the full declarative contract.
-5. Switch compatible engines, themes and dimensions. Export only available artifacts. Default reproduction ZIP contains the snapshot checksum/reference, plan, chart configuration, controlled code and dependency lock, **not data rows**. The explicitly labeled second download includes the snapshot.
+5. Switch compatible engines, themes and dimensions. Interactive engines deliver the HTML preview first; static engines deliver PNG first. Other supported files are generated on download, and export failures preserve the chart. Default reproduction ZIP contains the snapshot checksum/reference, plan, chart configuration, controlled code and dependency lock, **not data rows**. The explicitly labeled second download includes the snapshot.
 6. Projects, questions, runs and revisions persist in SQLite. Undo/restore create a new revision, preserving ancestry. Restarting a worker marks interrupted runs failed and offers retry. New datasets or requests supersede stale work.
+
+## Delivery reliability and live verification
+
+Chart publication does not wait for every export format. Plotly/Altair/ECharts publish HTML first; image/PDF export runs on demand in a separate process with a 45-second timeout. Download errors leave the preview and revision available. Queued jobs expire after `RUN_QUEUE_TIMEOUT` (default 60 seconds); abandoned running jobs expire after `RUN_TIMEOUT` + 30 seconds. Execution/publication exceptions become failed runs with retry feedback.
+
+The model protocol uses stable field IDs and the computed `value` column for aggregated metrics, with validation before execution. Live DeepSeek checks on synthetic data covered sales aggregation, conversion ratios and follow-up discussion. One browser run measured recommendation **4.522 s**, follow-up **4.249 s**, and execution to a visible chart **5.680 s**, with a successful PNG download. These are individual observations, not latency guarantees or P95 estimates. See [live verification and reproduction](docs/LIVE-VALIDATION.md).
 
 ## Capability matrix
 
@@ -95,9 +101,11 @@ The current delivery also actually tested official portable PostgreSQL 17.11 and
 
 Default: `PROVIDER=rule`, no key required. API process variables: `PROVIDER=deepseek|openai|anthropic|ollama`, `MODEL`, optional `MODEL_BASE_URL`, and `MODEL_API_KEY` for remote authenticated providers. DeepSeek defaults to `deepseek-flash`; other providers require a model name. OpenAI-compatible uses `/chat/completions`; Anthropic uses its own `/messages` and headers; Ollama uses `/api/chat` with native JSON schema and `stream:false`.
 
-Only field metadata and numeric/date statistics are sent by default, not raw row samples. Metadata can be sensitive. Local hosting does not make remote inference local. Credentials never belong in frontend variables, exports or source control. Protocol/error tests use mocks to test wire shapes; **no live model requests were made without credentials**. No cost estimate is invented. Arbitrary generated Python and JavaScript are disabled.
+Only field metadata and numeric/date statistics are sent by default, not raw row samples. Metadata can be sensitive. Local hosting does not make remote inference local. Credentials never belong in frontend variables, exports or source control. Protocol/error tests use mocks to test wire shapes; opt-in live DeepSeek tests were also run with configured credentials on synthetic data. No cost estimate is invented. Arbitrary generated Python and JavaScript are disabled.
 
 ## Validation and benchmarks
+
+Pre-push check (2026-10-05): **70 non-database Python tests and 9 frontend tests passed**; TypeScript typecheck passed. The opt-in real-model browser flow passed on 2026-10-04; see [live validation](docs/LIVE-VALIDATION.md).
 
 ```sh
 uv run pytest -m 'not database'

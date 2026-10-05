@@ -71,6 +71,22 @@ def event(c, run, stage, status=None, error=None):
     c.execute("UPDATE jobs SET status=?,body=?,updated_at=? WHERE id=?", (run["status"], json.dumps(run), now(), run["id"]))
 
 
+def expire_jobs():
+    """Polling must terminate abandoned jobs even if no worker is alive."""
+    current_time = datetime.now(timezone.utc)
+    queue_timeout = float(os.getenv("RUN_QUEUE_TIMEOUT", "60"))
+    running_timeout = float(os.getenv("RUN_TIMEOUT", "120")) + 30
+    with connect() as c:
+        c.execute("BEGIN IMMEDIATE")
+        for row in c.execute("SELECT body FROM jobs WHERE status IN ('queued','running')").fetchall():
+            run = json.loads(row[0])
+            elapsed = (current_time - datetime.fromisoformat(run['updated_at'])).total_seconds()
+            limit = queue_timeout if run['status'] == 'queued' else running_timeout
+            if elapsed > limit:
+                message = "排队超时，执行器尚未接单。请检查 worker 是否启动后重试 / Queue timed out; check the worker and retry" if run['status'] == 'queued' else "执行器未在期限内返回结果，请重试 / Worker did not return a result before the deadline"
+                event(c, run, 'deadline exceeded', 'failed', message)
+
+
 def enqueue(project_id, plan, spec, summary, expected_head=None):
     from .contracts import Run
     with connect() as c:

@@ -91,6 +91,7 @@ export default function Home() {
   const [actionLabel, setActionLabel] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [exporting, setExporting] = useState("");
   const [run, setRun] = useState<Run | null>(null);
   const [command, setCommand] = useState("");
   const [tab, setTab] = useState("chart");
@@ -142,6 +143,26 @@ export default function Home() {
   const fileInput = useRef<HTMLInputElement>(null);
   const activeId = useRef("");
   const eventRef = useRef<EventSource | null>(null);
+  async function downloadChart(id: string, format: string) {
+    if (exporting) return;
+    setExporting(format); setError("");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+    try {
+      const response = await fetch(`/api/revisions/${id}/artifact/${format}?download=true`, {signal: controller.signal});
+      if (!response.ok) {
+        const failure = await response.json().catch(() => ({}));
+        throw Error(typeof failure.detail === "string" ? failure.detail : t("文件导出失败，图表已保留。", "Export failed; chart remains available."));
+      }
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement("a");
+      link.href = url; link.download = `intentlens-${id.slice(0,8)}.${format}`;
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (failure) {
+      setError(controller.signal.aborted ? t("文件导出超时，图表已保留。", "Export timed out; chart remains available.") : failure instanceof Error ? failure.message : String(failure));
+    } finally { clearTimeout(timeout); setExporting(""); }
+  }
   async function guarded(fn: () => Promise<unknown>, label = t("正在处理…", "Processing…")) {
     if (busyRef.current) return;
     busyRef.current = true;
@@ -744,8 +765,8 @@ export default function Home() {
                         </Button>
                       </div>
                       <div className="chart-downloads" aria-label="Chart downloads">
-                        {r.artifacts.png && <Button asChild><a href={`/api/revisions/${r.id}/artifact/png?download=true`} download><ArrowDownToLine size={16} />{t("一键下载图片", "Download image")}</a></Button>}
-                        {["svg","pdf","html"].filter(format=>r.artifacts[format]).map(format=><a key={format} href={`/api/revisions/${r.id}/artifact/${format}?download=true`} download>{format.toUpperCase()}<ArrowDownToLine size={12}/></a>)}
+                        {["png","svg","pdf","html"].filter(format=>r.artifacts[format] || r.available_exports?.includes(format)).map(format=><Button key={format} disabled={!!exporting} onClick={()=>downloadChart(r.id,format)}><ArrowDownToLine size={16}/>{exporting===format ? t("正在导出…", "Exporting…") : format==="png" ? t("下载图片", "Download image") : format.toUpperCase()}</Button>)}
+                        <small>{t("先显示图表，下载时生成所需文件。", "Chart first; export files are generated on download.")}</small>
                       </div>
                       <div className="chart-preview">
                         {r.artifacts.html ? (
@@ -1253,27 +1274,25 @@ export default function Home() {
                   <h3>{t("带走你的洞察", "Take your insight with you")}</h3>
                   <p>
                     {t(
-                      "只展示当前产物支持的格式",
-                      "Only available export formats are shown",
+                      "文件按需导出，失败不影响已生成的图表",
+                      "Export on demand; export failures do not remove the chart",
                     )}
                   </p>
                   <div className="export-links">
                     {r ? (
-                      Object.keys(r.artifacts)
+                      Array.from(new Set([...Object.keys(r.artifacts), ...(r.available_exports || [])]))
                         .filter((f) =>
                           ["png", "svg", "pdf", "html"].includes(f),
                         )
                         .map((f) => (
-                          <a
+                          <button
                             key={f}
-                            href={`/api/revisions/${r.id}/artifact/${f}`}
-                            download={`chart.${f}`}
-                            target="_blank"
-                            rel="noreferrer"
+                            disabled={!!exporting}
+                            onClick={()=>downloadChart(r.id,f)}
                           >
                             <ArrowDownToLine size={13} />
-                            {f.toUpperCase()}
-                          </a>
+                            {exporting===f ? t("正在导出…", "Exporting…") : f.toUpperCase()}
+                          </button>
                         ))
                     ) : (
                       <span className="unavailable">
