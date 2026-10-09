@@ -22,6 +22,8 @@ test("real import → recommendation → render → five edits → export → re
   });
   await expect(page.getByRole("heading", {name: "AI 决策建议"})).toBeVisible();
   await page.route("**/api/projects/*/decision", route => route.request().method()==="POST" ? route.fulfill({status:422,json:{detail:"Configure scripts/configure-deepseek.ps1"}}) : route.continue());
+  await expect(page.getByRole("button", {name: "生成决策建议", exact: true})).toBeDisabled();
+  await page.getByRole("checkbox").check();
   await page.getByRole("button", {name: "生成决策建议", exact: true}).click();
   await expect(page.locator('p[role="alert"]')).toContainText("configure-deepseek.ps1");
   await expect(page.frameLocator(".chart-preview iframe").locator(".barlayer .point").first()).toBeVisible();

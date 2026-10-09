@@ -32,20 +32,20 @@ def test_decision_evidence_and_persistence(fixture,monkeypatch):
         assert 'fixture-key' not in prompt
         return advice()
     monkeypatch.setattr(ProviderAdapter,'request',request)
-    response=client.post(f'/projects/{id}/decision',json={'revision_id':'rev'})
+    response=client.post(f'/projects/{id}/decision',json={'revision_id':'rev','allow_aggregate_send':True})
     assert response.status_code==200,response.text
     assert response.json()['provider']=='deepseek'
     assert client.get(f'/projects/{id}/decision').json()==response.json()
     assert 'fixture-key' not in client.get('/model/status').text
     assert client.post(f'/projects/{id}/decision',json={'revision_id':'old'}).status_code==422
     r['plan']['aggregation']='raw';store.put('revision',r)
-    assert client.post(f'/projects/{id}/decision',json={'revision_id':'rev'}).status_code==422
+    assert client.post(f'/projects/{id}/decision',json={'revision_id':'rev','allow_aggregate_send':True}).status_code==422
 
 
 def test_invalid_evidence_rejected(fixture,monkeypatch):
     client,id,r=fixture
     monkeypatch.setattr(ProviderAdapter,'request',lambda *args:advice([999]))
-    response=client.post(f'/projects/{id}/decision',json={'revision_id':'rev'})
+    response=client.post(f'/projects/{id}/decision',json={'revision_id':'rev','allow_aggregate_send':True})
     assert response.status_code==422
     assert client.get(f'/projects/{id}/decision').json() is None
 
@@ -61,7 +61,7 @@ def test_evidence_limit_and_changed_revision(fixture,monkeypatch):
         with store.connect() as c: c.execute('UPDATE projects SET head=NULL WHERE id=?',(id,))
         return advice()
     monkeypatch.setattr(ProviderAdapter,'request',request)
-    assert client.post(f'/projects/{id}/decision',json={'revision_id':'rev'}).status_code==422
+    assert client.post(f'/projects/{id}/decision',json={'revision_id':'rev','allow_aggregate_send':True}).status_code==422
     assert client.get(f'/projects/{id}/decision').json() is None
 
 
@@ -78,3 +78,12 @@ def test_bad_output_redacted(content):
     adapter=ProviderAdapter('deepseek','https://api.deepseek.com','deepseek-flash','fixture-key',httpx.MockTransport(lambda r:httpx.Response(200,json={'choices':[{'message':{'content':content}}]})))
     with pytest.raises(ValueError,match='格式无效') as e: adapter.request('test')
     assert 'fixture-key' not in str(e.value)
+
+
+def test_decision_requires_explicit_consent(fixture,monkeypatch):
+    client,id,_=fixture
+    def forbidden(*args): raise AssertionError('must not call remote model')
+    monkeypatch.setattr(ProviderAdapter,'request',forbidden)
+    response=client.post(f'/projects/{id}/decision',json={'revision_id':'rev'})
+    assert response.status_code==422
+    assert 'Confirm permission' in response.json()['detail']

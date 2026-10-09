@@ -1,3 +1,15 @@
+# Current status
+
+Updated 2026-10-09. Development build; not a fully accepted release.
+
+- Public GitHub Pages demo is published, with fixed synthetic data and rule-based calculations; it is not the full AI workbench.
+- Latest GitHub CI at b3dec47 passed. Real DeepSeek model tests use synthetic inputs and retain prompts, output and timing separately.
+- Current changes: diagnostics/clarification prompt constraints, explicit consent before aggregate decision payloads, UI and trial feedback entry.
+- Docker on a clean machine, real-user retention and complete release acceptance remain unverified. Project LICENSE still requires an owner decision.
+- Historical test counts are not current acceptance guarantees. See docs/TEST-EVIDENCE.md for required evidence.
+
+## Historical snapshot (2026-09-27, superseded)
+
 # Status
 
 Updated 2026-09-27 (Asia/Shanghai). **Runnable development delivery; not yet a fully accepted V1 release.** No existing project was overwritten. Next.js generated its own apps/web/AGENTS.md during development; its version-matched docs were read.

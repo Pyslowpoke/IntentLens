@@ -1,4 +1,6 @@
 import asyncio
+import logging
+from contextlib import asynccontextmanager
 from services.config import load_environment
 load_environment("api")
 import io
@@ -20,7 +22,23 @@ from .compute import validate
 from .providers import recommend, ProviderAdapter, Proposal, DecisionAdvice
 from .render import REGISTRY, resolve
 
-app=FastAPI(title="AI Visualization Workbench",version="0.1.0")
+@asynccontextmanager
+async def lifespan(app):
+    async def sweep():
+        while True:
+            try:
+                await asyncio.to_thread(store.expire_jobs)
+            except Exception:
+                logging.getLogger(__name__).exception('Task deadline sweep failed')
+            await asyncio.sleep(max(.1, float(os.getenv('TASK_SWEEP_INTERVAL', '5'))))
+    task=asyncio.create_task(sweep())
+    try:
+        yield
+    finally:
+        task.cancel()
+        await asyncio.gather(task,return_exceptions=True)
+
+app=FastAPI(title="AI Visualization Workbench",version="0.1.0",lifespan=lifespan)
 app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:3000","http://127.0.0.1:3000"],allow_methods=["GET","POST"],allow_headers=["Content-Type","Last-Event-ID"])
 
 
@@ -46,6 +64,8 @@ def model_status(): return ProviderAdapter().status()
 
 @app.post("/projects/{id}/decision")
 def decision(id:str,body:dict):
+    if body.get('allow_aggregate_send') is not True:
+        raise ValueError('请确认允许发送聚合结果 / Confirm permission to send aggregate results')
     p=store.project(id)
     if not p["head"] or body.get("revision_id")!=p["head"]: raise ValueError("请先执行分析方案，并刷新到当前图表版本")
     r=store.get("revision",p["head"])
@@ -197,6 +217,17 @@ def proposals(id:str,body:dict):
     current=store.get("revision",p["head"]) if p["head"] else None
     visual_context={"preferred_engine":body.get("preferred_engine","auto"),"engine_capabilities":REGISTRY,"current_chart": {"plan":current["plan"],"spec":current["spec"]} if current else None}
     result=recommend(store.get("dataset",p["dataset_id"]),goal,body.get("mode","rule"),body.get("language","zh"),history,visual_context)
+    from .data_review import review
+    diagnostics = review(store.get("dataset",p["dataset_id"]))
+    result['diagnostics'] = diagnostics
+    if any(word in goal.lower() for word in ('不太对劲', '异常', '数据质量', 'diagnos', 'data quality')):
+        result['analysis'] = (
+            f"本地检查：{diagnostics['rows']} 行，{diagnostics['exact_duplicate_rows']} 条整行重复，"
+            f"{len(diagnostics['possible_summary_rows'])} 个疑似汇总标签。重复分类值不是重复记录；标签是否合计仍需业务确认。"
+            if body.get('language','zh') != 'en' else
+            f"Local checks: {diagnostics['rows']} rows, {diagnostics['exact_duplicate_rows']} exact duplicate rows, "
+            f"{len(diagnostics['possible_summary_rows'])} possible summary labels. Repeated categories are not duplicate records; label meaning needs confirmation."
+        )
     if store.project(id)["dataset_id"]!=p["dataset_id"]: raise ValueError("Data changed during analysis; retry / 分析期间数据已变化")
     history=history+[{"role":"user","content":goal},{"role":"assistant","content":json.dumps(result,ensure_ascii=False)}]
     store.put("context",{"id":id,"dataset_id":p["dataset_id"],"goal":goal,"proposals":result,"messages":history})

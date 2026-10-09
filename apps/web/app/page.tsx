@@ -635,8 +635,8 @@ export default function Home() {
                 <p className="privacy-note">
                   <ShieldCheck size={12} />
                   {t(
-                    "规则模式不调用 AI。模型模式默认仅发送字段与统计摘要，不发送原始行。",
-                    "Rule mode does not use AI. Model mode sends field metadata and statistics, not raw rows.",
+                    "生成方案发送字段与统计摘要；决策建议另发送最多 100 组实际聚合结果。远程推理可能涉及敏感字段，请先检查。",
+                    "Plans send field metadata and statistics. Decision advice additionally sends up to 100 computed aggregate groups. Review sensitive fields before remote inference.",
                   )}
                 </p>
                 {questions.map((q) => (
@@ -1366,6 +1366,7 @@ export default function Home() {
             </aside>
           </div>
         </div>
+        <aside className="trial-feedback"><strong>{t("这次分析完成了吗？", "Did this analysis work for you?")}</strong><span>{t("记录卡住的步骤和预期结果，不必上传业务数据。", "Tell us where you got stuck and what you expected. No private data needed.")}</span><a target="_blank" rel="noreferrer" href="https://github.com/Pyslowpoke/IntentLens/issues/new?template=trial-feedback.yml">{t("提交使用反馈 ↗", "Share feedback ↗")}</a></aside>
         <footer>
           {t(
             "从数据到决策，保留每一步的来路。",

@@ -58,6 +58,19 @@ def test_model_discussion_restores_history_and_resets_on_dataset_change(client,m
     assert seen[-1]['conversation']==[]
 
 
+def test_quality_summary_uses_computed_facts_not_model_numbers(client,monkeypatch):
+    monkeypatch.setattr(ProviderAdapter,'request',lambda *args: Proposals(analysis='There are 999 suspicious regions',questions=['Which task?']))
+    project=client.post('/projects',json={'name':'quality'}).json()
+    url='/projects/'+project['id']
+    client.post(url+'/paste',json={'text':'地区\t销售额\nEast\t100\nEast\t300\nWest\t200'})
+    result=client.post(url+'/recommend',json={'goal':'帮我看看数据哪里不太对劲','mode':'model'}).json()
+    assert result['diagnostics']['rows']==3
+    assert result['diagnostics']['exact_duplicate_rows']==0
+    assert result['diagnostics']['possible_summary_rows']==[]
+    assert '999' not in result['analysis']
+    assert '重复分类值不是重复记录' in result['analysis']
+
+
 def test_matplotlib_nullable_categories_renders_real_nonblank_png(tmp_path):
     result={'records':[{'region':'A','value':10},{'region':None,'value':20}], 'columns':['region','value'],'labels':{}}
     artifacts=render(result,ChartSpec(engine='matplotlib',kind='bar'),tmp_path)

@@ -46,7 +46,7 @@ def main():
                     for text in ('更直观一点','改成蓝色'):
                         edit=client.post(f'/projects/{project["id"]}/edit',json={"text":text,"mode":"rule","chart_id":state['chart_id'],"revision_id":state['head']})
                         evidence.setdefault('edit_checks',[]).append({"text":text,"http_status":edit.status_code,"response":edit.json()})
-                    decision=client.post(f'/projects/{project["id"]}/decision',json={"revision_id":state['head'],"goal":goal})
+                    decision=client.post(f'/projects/{project["id"]}/decision',json={"revision_id":state['head'],"goal":goal,"allow_aggregate_send":True})
                     evidence['decision_check']={"http_status":decision.status_code,"response":decision.json()}
             output['cases'].append(evidence)
             print(name,run['status'],'questions=',len(recommendation['questions']),flush=True)

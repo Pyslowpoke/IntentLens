@@ -48,6 +48,22 @@ def create_run():
     return client, project, run
 
 
+def test_abandoned_queue_expires_without_browser_polling(monkeypatch):
+    import time
+    monkeypatch.setenv('TASK_SWEEP_INTERVAL','.1')
+    monkeypatch.setenv('RUN_QUEUE_TIMEOUT','.1')
+    with TestClient(app):
+        _,_,run=create_run()
+        def current():
+            with store.connect() as c:
+                return json.loads(c.execute('SELECT body FROM jobs WHERE id=?',(run['id'],)).fetchone()[0])
+        deadline=time.monotonic()+3
+        while time.monotonic()<deadline and current()['status']=='queued':
+            time.sleep(.05)
+        assert current()['status']=='failed'
+        assert 'Queue timed out' in current()['error']
+
+
 def test_real_worker_delivers_preview_and_on_demand_png(monkeypatch):
     client, project, run = create_run()
     # Even an unusable configured browser cannot prevent first delivery.

@@ -8,7 +8,7 @@
 
 [![Verify](https://github.com/Pyslowpoke/IntentLens/actions/workflows/ci.yml/badge.svg)](https://github.com/Pyslowpoke/IntentLens/actions/workflows/ci.yml) [![Demo](https://img.shields.io/badge/demo-try%20in%20browser-7463d7?style=flat-square)](https://pyslowpoke.github.io/IntentLens/) ![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square) ![Next.js](https://img.shields.io/badge/Next.js-16-171717?style=flat-square)
 
-[Try the demo](https://pyslowpoke.github.io/IntentLens/?lang=en) · [Quick install](START-HERE.md) · [Live validation](docs/LIVE-VALIDATION.md) · [简体中文](README.zh-CN.md)
+[Try the demo](https://pyslowpoke.github.io/IntentLens/?lang=en) · [Quick install](START-HERE.en.md) · [Live validation](docs/LIVE-VALIDATION.md) · [简体中文](README.zh-CN.md)
 
 </div>
 
@@ -52,7 +52,7 @@ Chinese/English, visualization preferences and multiple engines. Publish a usabl
 | Question | Project boundary |
 | :--- | :--- |
 | Does it execute arbitrary model code? | No. Models propose declarative plans; controlled operations compute the results. |
-| Is inference always local? | No. Remote model mode sends field metadata and statistics by default; metadata can be sensitive. Rule mode needs no model key. |
+| Is inference always local? | No. Plans send metadata/statistics; decision advice also sends computed aggregate groups with consent. Rule mode needs no model key. |
 | Can I reproduce a result? | Export the plan, chart configuration and dependency lock. The default bundle excludes data rows; a separate labeled option includes the snapshot. |
 | Is it ready for a public multi-user service? | Native mode is for a trusted local user. Authentication and multi-tenancy are not implemented. |
 
@@ -149,7 +149,7 @@ The current delivery also actually tested official portable PostgreSQL 17.11 and
 
 Default: `PROVIDER=rule`, no key required. API process variables: `PROVIDER=deepseek|openai|anthropic|ollama`, `MODEL`, optional `MODEL_BASE_URL`, and `MODEL_API_KEY` for remote authenticated providers. DeepSeek defaults to `deepseek-flash`; other providers require a model name. OpenAI-compatible uses `/chat/completions`; Anthropic uses its own `/messages` and headers; Ollama uses `/api/chat` with native JSON schema and `stream:false`.
 
-Only field metadata and numeric/date statistics are sent by default, not raw row samples. Metadata can be sensitive. Local hosting does not make remote inference local. Credentials never belong in frontend variables, exports or source control. Protocol/error tests use mocks to test wire shapes; opt-in live DeepSeek tests were also run with configured credentials on synthetic data. No cost estimate is invented. Arbitrary generated Python and JavaScript are disabled.
+Plan generation sends field metadata and numeric/date statistics, not raw row samples. Decision advice separately sends the current plan and up to 100 actual aggregate groups after explicit confirmation; aggregate labels and values may be sensitive. Metadata can be sensitive. Local hosting does not make remote inference local. Credentials never belong in frontend variables, exports or source control. Protocol/error tests use mocks to test wire shapes; opt-in live DeepSeek tests were also run with configured credentials on synthetic data. No cost estimate is invented. Arbitrary generated Python and JavaScript are disabled.
 
 ## Validation and benchmarks
 
@@ -188,3 +188,9 @@ Read [CONTRIBUTING](CONTRIBUTING.md). A permissive **Apache-2.0** repository lic
 If this is useful, a Star helps others discover it. Reproducible feedback helps improve it.
 
 [Contribution guide](CONTRIBUTING.md) · [Third-party notices](docs/THIRD_PARTY.md)
+
+## Try one real task
+
+Use public or sanitized data and share where the workflow fails via the in-app feedback link. No star request, and no private data or keys in public issues. See [user-trial protocol](docs/USER-TRIAL.md).
+
+[Validation scope / 本轮验证范围](docs/VALIDATION-2026-10-09.md)
