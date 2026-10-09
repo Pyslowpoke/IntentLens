@@ -42,7 +42,9 @@ def test_altair_preview_does_not_convert_static_files(tmp_path, monkeypatch):
 
 def create_run():
     client = TestClient(app)
-    project = client.post('/projects', json={'name': 'Synthetic delivery regression'}).json()
+    response = client.post('/projects', json={'name': 'Synthetic delivery regression'})
+    assert response.status_code == 200, response.json()
+    project = response.json()
     client.post(f"/projects/{project['id']}/paste", json={'text': 'region\trevenue\nEast\t100\nWest\t200'})
     run = client.post(f"/projects/{project['id']}/runs", json={'plan': {'group_by': ['f1'], 'metric': 'f2'}, 'spec': {'engine': 'plotly'}, 'expected_head': None}).json()
     return client, project, run

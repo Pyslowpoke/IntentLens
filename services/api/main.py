@@ -24,6 +24,10 @@ from .render import REGISTRY, resolve
 
 @asynccontextmanager
 async def lifespan(app):
+    # Initialize WAL and schema before requests and the watchdog open competing
+    # connections. Concurrent first-use PRAGMA journal_mode can fail on SQLite.
+    connection=store.connect()
+    connection.close()
     async def sweep():
         while True:
             try:
